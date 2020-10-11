@@ -29,12 +29,10 @@ def openImage(image_url):
     """
     return cv2.imread(image_url)
 
-if __name__ == '__main__':
-    #parser = createParser()
-    #namespace = parser.parse_args(sys.argv[1:])
-    
-    image = openImage('./images/circles.jpg')
-
+def overlappingParticles(image):
+    """
+    Только группы перекрывающихся частиц.
+    """
     # эрозия
     #kernel = cv2.getStructuringElement(cv2.MORPH_CROSS,(5,5))
     kernel = np.array([[0, 0, 1, 0, 0],
@@ -66,3 +64,11 @@ if __name__ == '__main__':
     dilation = cv2.dilate(erosion, kernel, iterations=2)
     ret, threshold_image = cv2.threshold(dilation, 30, 255, 0)
     viewImage(threshold_image, 'image')
+
+
+if __name__ == '__main__':
+    #parser = createParser()
+    #namespace = parser.parse_args(sys.argv[1:])
+    
+    image = openImage('./images/circles.jpg')
+    overlappingParticles(image)
