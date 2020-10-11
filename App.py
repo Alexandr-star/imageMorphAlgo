@@ -34,25 +34,13 @@ def overlappingParticles(image):
     Только группы перекрывающихся частиц.
     """
     # эрозия
-    #kernel = cv2.getStructuringElement(cv2.MORPH_CROSS,(5,5))
     kernel = np.array([[0, 0, 1, 0, 0],
                        [0, 1, 1, 1, 0],
                        [1, 1, 1, 1, 1],
                        [0, 1, 1, 1, 0],
                        [0, 0, 1, 0, 0]], dtype=np.uint8)
-    #kernel = cv2.getStructuringElement(cv2.MORPH_CROSS,(5,5))
     erosion = cv2.erode(image, kernel, iterations=4)
 
-    #kernel = np.array([[0, 0, 0, 1, 1, 1, 1, 0, 0, 0],
-     #                  [0, 1, 1, 1, 1, 1, 1, 1, 0, 0],
-      #                 [0, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-       #                [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-        #               [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-         #              [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-          #             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-           #            [0, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-            #           [0, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-             #          [0, 0, 0, 1, 1, 1, 1, 0, 0, 0],], dtype=np.uint8)
     kernel = np.array([[0, 0, 1, 1, 1, 1, 0, 0],
                        [0, 1, 1, 1, 1, 1, 1, 0],
                        [1, 1, 1, 1, 1, 1, 1, 1],
@@ -63,7 +51,22 @@ def overlappingParticles(image):
                        [0, 0, 1, 1, 1, 1, 0, 0] ], dtype=np.uint8)
     dilation = cv2.dilate(erosion, kernel, iterations=2)
     ret, threshold_image = cv2.threshold(dilation, 30, 255, 0)
-    viewImage(threshold_image, 'image')
+    return threshold_image
+
+def singleParticles(originImage, image):
+    """
+    Только одиночные частицы.
+    """
+    diff_image = originImage - image
+    kernel = np.array([[1, 1, 1, 1, 1, 1],
+                       [1, 1, 1, 1, 1, 1],
+                       [1, 1, 1, 1, 1, 1],
+                       [1, 1, 1, 1, 1, 1],
+                       [1, 1, 1, 1, 1, 1],
+                       [1, 1, 1, 1, 1, 1]], dtype=np.uint8)
+    onlySmallPart_image = cv2.morphologyEx(diff_image, cv2.MORPH_OPEN, kernel)
+
+    return onlySmallPart_image
 
 
 if __name__ == '__main__':
@@ -71,4 +74,5 @@ if __name__ == '__main__':
     #namespace = parser.parse_args(sys.argv[1:])
     
     image = openImage('./images/circles.jpg')
-    overlappingParticles(image)
+    onlyBigPart_image = overlappingParticles(image)
+    onlySmallPart_image = singleParticles(image, onlyBigPart_image)
