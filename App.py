@@ -74,24 +74,35 @@ def deleteBorderComponents(image):
     Только частицы касающиеся краев изображения
     """
     ret, binary_image = cv2.threshold(image, 127, 255, 0)
-    
+    save(binary_image, "binary_image")
+
     big_kernel = np.ones((5, 5), np.uint8)
     withoutNoise_image = cv2.morphologyEx(binary_image, cv2.MORPH_OPEN, big_kernel)
-    
+    save(withoutNoise_image, "withoutNoise_image")
+
     kernel = np.ones((3, 3), np.uint8)
     contours_image = cv2.morphologyEx(withoutNoise_image, cv2.MORPH_GRADIENT, kernel)
+    save(contours_image, "contours_image")
 
     imageBGR2GRAY = cv2.cvtColor(contours_image, cv2.COLOR_BGR2GRAY)
     contours, hierarchy = cv2.findContours(imageBGR2GRAY, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    
+
     filledContours = np.zeros((contours_image.shape[0], contours_image.shape[1], 3), dtype=np.uint8)
     for i in range(len(contours)):
         cv2.drawContours(filledContours, contours, int(i), color, thickness=-1)
+    save(filledContours, "filledContours")
 
     withoutBorder_image = cv2.morphologyEx(filledContours, cv2.MORPH_OPEN, big_kernel)
+    save(withoutBorder_image, "withoutBorder_image")
+
     onlyBorderPart_image = singleParticles(image, withoutBorder_image)
-    
+    save(withoutBorder_image, "onlyBorderPart_image")
+
     return onlyBorderPart_image
+
+def save(image, name):
+    url = './savedimage/{0}.jpg'.format(name)
+    cv2.imwrite(url, image)
 
 
 if __name__ == '__main__':
