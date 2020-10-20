@@ -68,6 +68,21 @@ def singleParticles(originImage, image):
 
     return onlySmallPart_image
 
+def deleteBorderComponents(image):
+    kernel = np.ones((3, 3), np.uint8)
+    # удаление лишнего(шумов)
+    image = cv2.morphologyEx(image, cv2.MORPH_OPEN, kernel)
+    # выделение границ
+    # erosion = cv2.erode(image, kernel, iterations=1)
+    erosion = cv2.morphologyEx(image, cv2.MORPH_GRADIENT, kernel)
+    image = erosion;
+
+    imgray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    ret, thresh = cv2.threshold(imgray, 127, 255, 0)
+    contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    cv2.drawContours(thresh, [max(contours, key=cv2.contourArea)], -1, 255, thickness=-1)
+    return image
+
 
 if __name__ == '__main__':
     #parser = createParser()
@@ -76,3 +91,5 @@ if __name__ == '__main__':
     image = openImage('./images/circles.jpg')
     onlyBigPart_image = overlappingParticles(image)
     onlySmallPart_image = singleParticles(image, onlyBigPart_image)
+
+    viewImage(deleteBorderComponents(image), 'asd')
