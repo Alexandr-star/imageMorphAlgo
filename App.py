@@ -3,6 +3,7 @@ import argparse
 import cv2
 import numpy as np
 
+color = (255, 255, 255)
 
 def createParser ():
     """
@@ -33,7 +34,6 @@ def overlappingParticles(image):
     """
     Только группы перекрывающихся частиц.
     """
-    # эрозия
     kernel = np.array([[0, 0, 1, 0, 0],
                        [0, 1, 1, 1, 0],
                        [1, 1, 1, 1, 1],
@@ -58,6 +58,7 @@ def singleParticles(originImage, image):
     Только одиночные частицы.
     """
     diff_image = originImage - image
+
     kernel = np.array([[1, 1, 1, 1, 1, 1],
                        [1, 1, 1, 1, 1, 1],
                        [1, 1, 1, 1, 1, 1],
@@ -69,19 +70,28 @@ def singleParticles(originImage, image):
     return onlySmallPart_image
 
 def deleteBorderComponents(image):
+    """
+    Только частицы касающиеся краев изображения
+    """
+    ret, binary_image = cv2.threshold(image, 127, 255, 0)
+    
+    big_kernel = np.ones((5, 5), np.uint8)
+    withoutNoise_image = cv2.morphologyEx(binary_image, cv2.MORPH_OPEN, big_kernel)
+    
     kernel = np.ones((3, 3), np.uint8)
-    # удаление лишнего(шумов)
-    image = cv2.morphologyEx(image, cv2.MORPH_OPEN, kernel)
-    # выделение границ
-    # erosion = cv2.erode(image, kernel, iterations=1)
-    erosion = cv2.morphologyEx(image, cv2.MORPH_GRADIENT, kernel)
-    image = erosion;
+    contours_image = cv2.morphologyEx(withoutNoise_image, cv2.MORPH_GRADIENT, kernel)
 
-    imgray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    ret, thresh = cv2.threshold(imgray, 127, 255, 0)
-    contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    cv2.drawContours(thresh, [max(contours, key=cv2.contourArea)], -1, 255, thickness=-1)
-    return image
+    imageBGR2GRAY = cv2.cvtColor(contours_image, cv2.COLOR_BGR2GRAY)
+    contours, hierarchy = cv2.findContours(imageBGR2GRAY, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    
+    filledContours = np.zeros((contours_image.shape[0], contours_image.shape[1], 3), dtype=np.uint8)
+    for i in range(len(contours)):
+        cv2.drawContours(filledContours, contours, int(i), color, thickness=-1)
+
+    withoutBorder_image = cv2.morphologyEx(filledContours, cv2.MORPH_OPEN, big_kernel)
+    onlyBorderPart_image = singleParticles(image, withoutBorder_image)
+    
+    return onlyBorderPart_image
 
 
 if __name__ == '__main__':
@@ -89,7 +99,9 @@ if __name__ == '__main__':
     #namespace = parser.parse_args(sys.argv[1:])
     
     image = openImage('./images/circles.jpg')
+
+    
     onlyBigPart_image = overlappingParticles(image)
     onlySmallPart_image = singleParticles(image, onlyBigPart_image)
-
-    viewImage(deleteBorderComponents(image), 'asd')
+    onlyBorderPart_image = deleteBorderComponents(image)
+    viewImage(onlyBorderPart_image, 'asd')
