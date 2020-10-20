@@ -77,11 +77,11 @@ def deleteBorderComponents(image):
     save(binary_image, "binary_image")
 
     big_kernel = np.ones((5, 5), np.uint8)
-    withoutNoise_image = cv2.morphologyEx(binary_image, cv2.MORPH_OPEN, big_kernel)
-    save(withoutNoise_image, "withoutNoise_image")
+    # withoutNoise_image = cv2.morphologyEx(binary_image, cv2.MORPH_OPEN, big_kernel)
+    # save(withoutNoise_image, "withoutNoise_image")
 
     kernel = np.ones((3, 3), np.uint8)
-    contours_image = cv2.morphologyEx(withoutNoise_image, cv2.MORPH_GRADIENT, kernel)
+    contours_image = cv2.morphologyEx(binary_image, cv2.MORPH_GRADIENT, kernel)
     save(contours_image, "contours_image")
 
     imageBGR2GRAY = cv2.cvtColor(contours_image, cv2.COLOR_BGR2GRAY)
