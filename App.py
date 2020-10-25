@@ -2,6 +2,7 @@ import sys
 import argparse
 import cv2
 
+h = 1
 
 def createParser ():
     """
